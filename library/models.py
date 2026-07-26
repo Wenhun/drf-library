@@ -1,4 +1,5 @@
 from django.db import models
+from decimal import Decimal
 
 
 class Author(models.Model):
@@ -16,14 +17,12 @@ class Book(models.Model):
         HARD = "hard"
 
     title = models.CharField(max_length=255)
-    author = models.ManyToManyField(
-        Author, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    author = models.ManyToManyField(Author, blank=True)
     cover = models.CharField(
         max_length=10, choices=CoverChoices.choices, default=CoverChoices.HARD
     )
     inventory = models.PositiveIntegerField(default=0)
-    daily_fee = models.DecimalField(default=0)
+    daily_fee = models.DecimalField(default=Decimal(0), max_digits=5, decimal_places=2)
 
     def __str__(self) -> str:
         return (
