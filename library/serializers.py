@@ -17,24 +17,40 @@ class AuthorNameSerializer(serializers.ModelSerializer):
         fields = ("full_name",)
 
     def to_representation(self, instance):
-        full_name = " ".join(
+        return " ".join(
             part
             for part in [instance.first_name, instance.middle_name, instance.last_name]
             if part
         )
-        return {"full_name": full_name}
 
 
 class BookDetailSerializer(serializers.ModelSerializer):
-    author = AuthorNameSerializer(read_only=True, many=False)
+    author = AuthorNameSerializer(read_only=True, many=True)
+    author_ids = serializers.PrimaryKeyRelatedField(
+        queryset=model.Author.objects.all(), many=True, write_only=True
+    )
 
     class Meta:
         model = model.Book
-        fields = ("id", "title", "author", "cover", "inventory", "daily_fee")
+        fields = (
+            "id",
+            "title",
+            "author",
+            "author_ids",
+            "cover",
+            "inventory",
+            "daily_fee",
+        )
+
+    def create(self, validated_data):
+        authors = validated_data.pop("author_ids")
+        book = model.Book.objects.create(**validated_data)
+        book.author.set(authors)
+        return book
 
 
 class BookListSerializer(serializers.ModelSerializer):
-    author = AuthorNameSerializer(read_only=True, many=False)
+    author = AuthorNameSerializer(read_only=True, many=True)
 
     class Meta:
         model = model.Book
